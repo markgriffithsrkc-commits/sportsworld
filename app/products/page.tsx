@@ -40,7 +40,7 @@ function ProductCard({ item }: { item: ShopItem }) {
         </div>
         <div className="product-card-copy">
           <div className="product-card-kicker">
-            <span>{item.team?.name ?? "Sports World selection"}</span>
+            <span>Sports World selection</span>
             {item.product?.rating != null && (
               <span>★ {item.product.rating.toFixed(1)}</span>
             )}

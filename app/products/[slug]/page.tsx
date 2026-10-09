@@ -83,13 +83,6 @@ export default async function ProductPage({
             <p className="eyebrow dark-eyebrow">
               <span /> SPORTS WORLD SHOP
             </p>
-            {item.team && (
-              <Link
-                className="product-team-link"
-                href={`/teams/${encodeURIComponent(item.team.slug)}`}>
-                {item.team.name} collection <span aria-hidden="true">↗</span>
-              </Link>
-            )}
             <h1>{productTitle}</h1>
             {item.product?.rating != null && (
               <p className="product-rating">
