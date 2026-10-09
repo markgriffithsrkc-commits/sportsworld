@@ -17,13 +17,14 @@ export type Fixture = {
   fixtureStatus: string;
   homeScore: number | null;
   awayScore: number | null;
-  homeTeam: { name: string; slug: string; teamLogo: Asset } | null;
-  awayTeam: { name: string; slug: string; teamLogo: Asset } | null;
-  venue: { name: string; city: string } | null;
-  competition: { name: string; season: string } | null;
+  homeTeam: { id: string; name: string; slug: string; teamLogo: Asset } | null;
+  awayTeam: { id: string; name: string; slug: string; teamLogo: Asset } | null;
+  venue: { id: string; name: string; city: string } | null;
+  competition: { id: string; name: string; season: string } | null;
 };
 
 export type NewsArticle = {
+  id: string;
   title: string;
   slug: string;
   articleDate: string;
@@ -32,14 +33,16 @@ export type NewsArticle = {
 };
 
 export type Team = {
+  id: string;
   name: string;
   slug: string;
   foundedYear: number | null;
   teamLogo: Asset;
-  homeVenue: { city: string } | null;
+  homeVenue: { id: string; city: string } | null;
 };
 
 export type TeamPlayer = {
+  id: string;
   name: string;
   shirtNumber: number;
   position: string;
@@ -47,12 +50,14 @@ export type TeamPlayer = {
 };
 
 export type TeamCompetition = {
+  id: string;
   name: string;
   season: string;
 };
 
 export type TeamProfile = Team & {
   homeVenue: {
+    id: string;
     name: string;
     city: string;
     capacity: number | null;
@@ -75,6 +80,7 @@ export type RemoteProduct = {
 };
 
 export type ShopItem = {
+  id: string;
   name: string;
   slug: string;
   productId: number;
@@ -93,14 +99,15 @@ type GraphQLResponse<T> = {
 };
 
 const HOME_PAGE_QUERY = /* GraphQL */ `
-  query SportsWorldHome {
-    fixtures(orderBy: kickoff_ASC, first: 4) {
+  query SportsWorldHome($stage: Stage!) {
+    fixtures(stage: $stage, orderBy: kickoff_ASC, first: 4) {
       id
       kickoff
       fixtureStatus
       homeScore
       awayScore
       homeTeam {
+        id
         name
         slug
         teamLogo {
@@ -108,6 +115,7 @@ const HOME_PAGE_QUERY = /* GraphQL */ `
         }
       }
       awayTeam {
+        id
         name
         slug
         teamLogo {
@@ -115,15 +123,18 @@ const HOME_PAGE_QUERY = /* GraphQL */ `
         }
       }
       venue {
+        id
         name
         city
       }
       competition {
+        id
         name
         season
       }
     }
-    articles(orderBy: articleDate_DESC, first: 3) {
+    articles(stage: $stage, orderBy: articleDate_DESC, first: 3) {
+      id
       title
       slug
       articleDate
@@ -131,7 +142,8 @@ const HOME_PAGE_QUERY = /* GraphQL */ `
         url
       }
     }
-    teams(first: 4) {
+    teams(stage: $stage, first: 4) {
+      id
       name
       slug
       foundedYear
@@ -139,6 +151,7 @@ const HOME_PAGE_QUERY = /* GraphQL */ `
         url
       }
       homeVenue {
+        id
         city
       }
     }
@@ -146,8 +159,9 @@ const HOME_PAGE_QUERY = /* GraphQL */ `
 `;
 
 const ARTICLE_BY_SLUG_QUERY = /* GraphQL */ `
-  query ArticleBySlug($slug: String!) {
-    article(where: { slug: $slug }) {
+  query ArticleBySlug($slug: String!, $stage: Stage!) {
+    article(where: { slug: $slug }, stage: $stage) {
+      id
       title
       slug
       articleDate
@@ -162,8 +176,9 @@ const ARTICLE_BY_SLUG_QUERY = /* GraphQL */ `
 `;
 
 const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
-  query TeamBySlug($slug: String!) {
-    team(where: { slug: $slug }) {
+  query TeamBySlug($slug: String!, $stage: Stage!) {
+    team(where: { slug: $slug }, stage: $stage) {
+      id
       name
       slug
       foundedYear
@@ -171,6 +186,7 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
         url
       }
       homeVenue {
+        id
         name
         city
         capacity
@@ -179,6 +195,7 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
         }
       }
       players(orderBy: shirtNumber_ASC) {
+        id
         name
         shirtNumber
         position
@@ -187,17 +204,19 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
         }
       }
       competitions {
+        id
         name
         season
       }
     }
-    fixtures(orderBy: kickoff_ASC, first: 100) {
+    fixtures(stage: $stage, orderBy: kickoff_ASC, first: 100) {
       id
       kickoff
       fixtureStatus
       homeScore
       awayScore
       homeTeam {
+        id
         name
         slug
         teamLogo {
@@ -205,6 +224,7 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
         }
       }
       awayTeam {
+        id
         name
         slug
         teamLogo {
@@ -212,10 +232,12 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
         }
       }
       venue {
+        id
         name
         city
       }
       competition {
+        id
         name
         season
       }
@@ -224,8 +246,9 @@ const TEAM_BY_SLUG_QUERY = /* GraphQL */ `
 `;
 
 const SHOP_ITEMS_QUERY = /* GraphQL */ `
-  query SportsWorldShop {
-    shopItems(first: 50) {
+  query SportsWorldShop($stage: Stage!) {
+    shopItems(stage: $stage, first: 50) {
+      id
       name
       slug
       productId
@@ -235,8 +258,9 @@ const SHOP_ITEMS_QUERY = /* GraphQL */ `
 `;
 
 const SHOP_ITEM_BY_SLUG_QUERY = /* GraphQL */ `
-  query ShopItemBySlug($slug: String!) {
-    shopItem(where: { slug: $slug }) {
+  query ShopItemBySlug($slug: String!, $stage: Stage!) {
+    shopItem(where: { slug: $slug }, stage: $stage) {
+      id
       name
       slug
       productId
@@ -248,6 +272,7 @@ const SHOP_ITEM_BY_SLUG_QUERY = /* GraphQL */ `
 async function queryHygraph<T>(
   query: string,
   variables?: Record<string, string>,
+  draft = false,
 ): Promise<T> {
   const endpoint = process.env.HYGRAPH_ENDPOINT?.trim();
   if (!endpoint) throw new Error("HYGRAPH_ENDPOINT is not configured");
@@ -287,7 +312,7 @@ async function queryHygraph<T>(
   return result.data;
 }
 
-export async function getHomePageData(): Promise<{
+export async function getHomePageData(draft = false): Promise<{
   data: HomePageData;
   configured: boolean;
   available: boolean;
@@ -300,7 +325,12 @@ export async function getHomePageData(): Promise<{
   }
 
   try {
-    const data = await queryHygraph<HomePageData>(HOME_PAGE_QUERY);
+    const stage = draft ? "DRAFT" : "PUBLISHED";
+    const data = await queryHygraph<HomePageData>(
+      HOME_PAGE_QUERY,
+      { stage },
+      draft,
+    );
     return {
       data: {
         fixtures: data.fixtures ?? [],
@@ -316,7 +346,7 @@ export async function getHomePageData(): Promise<{
   }
 }
 
-export async function getArticleBySlug(slug: string): Promise<{
+export async function getArticleBySlug(slug: string, draft = false): Promise<{
   article: NewsArticle | null;
   configured: boolean;
   available: boolean;
@@ -327,7 +357,8 @@ export async function getArticleBySlug(slug: string): Promise<{
   try {
     const data = await queryHygraph<{ article: NewsArticle | null }>(
       ARTICLE_BY_SLUG_QUERY,
-      { slug },
+      { slug, stage: draft ? "DRAFT" : "PUBLISHED" },
+      draft,
     );
     return { article: data.article, configured: true, available: true };
   } catch (error) {
@@ -336,7 +367,7 @@ export async function getArticleBySlug(slug: string): Promise<{
   }
 }
 
-export async function getTeamBySlug(slug: string): Promise<{
+export async function getTeamBySlug(slug: string, draft = false): Promise<{
   team: TeamProfile | null;
   configured: boolean;
   available: boolean;
@@ -348,7 +379,11 @@ export async function getTeamBySlug(slug: string): Promise<{
     const data = await queryHygraph<{
       team: Omit<TeamProfile, "homeFixtures" | "awayFixtures"> | null;
       fixtures: Fixture[];
-    }>(TEAM_BY_SLUG_QUERY, { slug });
+    }>(
+      TEAM_BY_SLUG_QUERY,
+      { slug, stage: draft ? "DRAFT" : "PUBLISHED" },
+      draft,
+    );
     const team = data.team
       ? {
           ...data.team,
@@ -367,7 +402,7 @@ export async function getTeamBySlug(slug: string): Promise<{
   }
 }
 
-export async function getShopItems(): Promise<{
+export async function getShopItems(draft = false): Promise<{
   items: ShopItem[];
   configured: boolean;
   available: boolean;
@@ -378,6 +413,8 @@ export async function getShopItems(): Promise<{
   try {
     const data = await queryHygraph<{ shopItems: ShopItem[] }>(
       SHOP_ITEMS_QUERY,
+      { stage: draft ? "DRAFT" : "PUBLISHED" },
+      draft,
     );
     return { items: data.shopItems ?? [], configured: true, available: true };
   } catch (error) {
@@ -389,7 +426,7 @@ export async function getShopItems(): Promise<{
   }
 }
 
-export async function getShopItemBySlug(slug: string): Promise<{
+export async function getShopItemBySlug(slug: string, draft = false): Promise<{
   item: ShopItem | null;
   configured: boolean;
   available: boolean;
@@ -400,7 +437,8 @@ export async function getShopItemBySlug(slug: string): Promise<{
   try {
     const data = await queryHygraph<{ shopItem: ShopItem | null }>(
       SHOP_ITEM_BY_SLUG_QUERY,
-      { slug },
+      { slug, stage: draft ? "DRAFT" : "PUBLISHED" },
+      draft,
     );
     return { item: data.shopItem, configured: true, available: true };
   } catch (error) {

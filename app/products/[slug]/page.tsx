@@ -1,5 +1,6 @@
 import { SiteFooter, SiteNavigation } from '@/components/site-chrome';
 import { getShopItemBySlug } from '@/lib/hygraph';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -25,7 +26,11 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { item, configured, available } = await getShopItemBySlug(slug);
+  const { isEnabled } = await draftMode();
+  const { item, configured, available } = await getShopItemBySlug(
+    slug,
+    isEnabled,
+  );
 
   if (available && !item) notFound();
 
@@ -82,6 +87,12 @@ export default async function ProductPage({
           <div className="product-detail-copy">
             <p className="eyebrow dark-eyebrow">
               <span /> SPORTS WORLD SHOP
+            </p>
+            <p
+              className="product-team-link"
+              data-hygraph-entry-id={item.id}
+              data-hygraph-field-api-id="name">
+              {item.name}
             </p>
             <h1>{productTitle}</h1>
             {item.product?.rating != null && (

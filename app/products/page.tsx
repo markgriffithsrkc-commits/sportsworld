@@ -1,5 +1,6 @@
 import { SiteFooter, SiteNavigation } from '@/components/site-chrome';
 import { getShopItems, ShopItem } from '@/lib/hygraph';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 
 import type { Metadata } from "next";
@@ -40,7 +41,11 @@ function ProductCard({ item }: { item: ShopItem }) {
         </div>
         <div className="product-card-copy">
           <div className="product-card-kicker">
-            <span>Sports World selection</span>
+            <span
+              data-hygraph-entry-id={item.id}
+              data-hygraph-field-api-id="name">
+              {item.name}
+            </span>
             {item.product?.rating != null && (
               <span>★ {item.product.rating.toFixed(1)}</span>
             )}
@@ -57,7 +62,8 @@ function ProductCard({ item }: { item: ShopItem }) {
 }
 
 export default async function ProductsPage() {
-  const { items, configured, available } = await getShopItems();
+  const { isEnabled } = await draftMode();
+  const { items, configured, available } = await getShopItems(isEnabled);
 
   return (
     <main id="top" className="article-page">

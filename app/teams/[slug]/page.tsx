@@ -1,6 +1,7 @@
 import { RichTextBody } from '@/components/rich-text-body';
 import { SiteFooter, SiteNavigation } from '@/components/site-chrome';
 import { Fixture, getTeamBySlug } from '@/lib/hygraph';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -45,34 +46,60 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
   return (
     <article className="fixture-card club-fixture-card">
       <div className="fixture-meta">
-        <span>{fixture.competition?.name ?? "Club fixture"}</span>
-        <span>{formatFixtureKickoff(fixture.kickoff)}</span>
+        <span
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="competition">
+          {fixture.competition?.name ?? "Club fixture"}
+        </span>
+        <time
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="kickoff">
+          {formatFixtureKickoff(fixture.kickoff)}
+        </time>
       </div>
       <div className="fixture-matchup">
-        <div className="fixture-side">
+        <div
+          className="fixture-side"
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="homeTeam">
           {fixture.homeTeam?.teamLogo?.url ? (
             <img
               src={fixture.homeTeam.teamLogo.url}
               alt=""
               className="fixture-crest"
+              data-hygraph-entry-id={fixture.homeTeam.id}
+              data-hygraph-field-api-id="teamLogo"
             />
           ) : (
             <span className="crest-placeholder">
               {fixture.homeTeam?.name?.charAt(0) ?? "?"}
             </span>
           )}
-          <span>{fixture.homeTeam?.name ?? "Home team"}</span>
+          <span
+            data-hygraph-entry-id={fixture.homeTeam?.id}
+            data-hygraph-field-api-id="name">
+            {fixture.homeTeam?.name ?? "Home team"}
+          </span>
         </div>
         <span className={hasScore ? "club-fixture-score" : "versus"}>
           {hasScore ? `${fixture.homeScore} – ${fixture.awayScore}` : "VS"}
         </span>
-        <div className="fixture-side fixture-side-away">
-          <span>{fixture.awayTeam?.name ?? "Away team"}</span>
+        <div
+          className="fixture-side fixture-side-away"
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="awayTeam">
+          <span
+            data-hygraph-entry-id={fixture.awayTeam?.id}
+            data-hygraph-field-api-id="name">
+            {fixture.awayTeam?.name ?? "Away team"}
+          </span>
           {fixture.awayTeam?.teamLogo?.url ? (
             <img
               src={fixture.awayTeam.teamLogo.url}
               alt=""
               className="fixture-crest"
+              data-hygraph-entry-id={fixture.awayTeam.id}
+              data-hygraph-field-api-id="teamLogo"
             />
           ) : (
             <span className="crest-placeholder">
@@ -82,12 +109,26 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
         </div>
       </div>
       <div className="fixture-footer">
-        <span>
-          {fixture.venue
-            ? `${fixture.venue.name}, ${fixture.venue.city}`
-            : status}
+        <span
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="venue">
+          {fixture.venue ? (
+            <>
+              <span
+                data-hygraph-entry-id={fixture.venue.id}
+                data-hygraph-field-api-id="name">
+                {fixture.venue.name}
+              </span>
+              , {fixture.venue.city}
+            </>
+          ) : (
+            status
+          )}
         </span>
-        <span className="fixture-season">
+        <span
+          className="fixture-season"
+          data-hygraph-entry-id={fixture.competition?.id}
+          data-hygraph-field-api-id="season">
           {fixture.competition?.season ?? status}
         </span>
       </div>
@@ -101,7 +142,8 @@ export default async function TeamPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { team, configured, available } = await getTeamBySlug(slug);
+  const { isEnabled } = await draftMode();
+  const { team, configured, available } = await getTeamBySlug(slug, isEnabled);
 
   if (available && !team) notFound();
 
@@ -155,7 +197,12 @@ export default async function TeamPage({
         <section className="club-profile">
           <div className="club-profile-crest">
             {team.teamLogo?.url ? (
-              <img src={team.teamLogo.url} alt={`${team.name} crest`} />
+              <img
+                src={team.teamLogo.url}
+                alt={`${team.name} crest`}
+                data-hygraph-entry-id={team.id}
+                data-hygraph-field-api-id="teamLogo"
+              />
             ) : (
               <span>{team.name.charAt(0)}</span>
             )}
@@ -164,16 +211,33 @@ export default async function TeamPage({
             <p className="eyebrow dark-eyebrow">
               <span /> THE CLUB
             </p>
-            <h1>{team.name}</h1>
+            <h1
+              data-hygraph-entry-id={team.id}
+              data-hygraph-field-api-id="name">
+              {team.name}
+            </h1>
             <p className="club-profile-location">
               {team.homeVenue?.city ?? "A Sports World club"}
-              {team.foundedYear ? ` · Founded ${team.foundedYear}` : ""}
+              {team.foundedYear ? (
+                <span
+                  data-hygraph-entry-id={team.id}
+                  data-hygraph-field-api-id="foundedYear">
+                  {" "}
+                  · Founded {team.foundedYear}
+                </span>
+              ) : (
+                ""
+              )}
             </p>
             {team.competitions.length > 0 && (
               <div className="club-competitions" aria-label="Competitions">
                 {team.competitions.map((competition) => (
                   <span key={`${competition.name}-${competition.season}`}>
-                    {competition.name}
+                    <span
+                      data-hygraph-entry-id={competition.id}
+                      data-hygraph-field-api-id="name">
+                      {competition.name}
+                    </span>
                     {competition.season ? ` · ${competition.season}` : ""}
                   </span>
                 ))}
@@ -182,7 +246,9 @@ export default async function TeamPage({
           </div>
         </section>
 
-        {team.bio?.raw && <RichTextBody content={team.bio} />}
+        {team.bio?.raw && (
+          <RichTextBody content={team.bio} entryId={team.id} fieldApiId="bio" />
+        )}
 
         {team.homeVenue && (
           <section className="club-venue">
@@ -191,18 +257,30 @@ export default async function TeamPage({
                 className="venue-image"
                 src={team.homeVenue.venueImage.url}
                 alt={`${team.homeVenue.name}, ${team.homeVenue.city}`}
+                data-hygraph-entry-id={team.homeVenue.id}
+                data-hygraph-field-api-id="venueImage"
               />
             )}
             <div className="venue-info">
               <p className="eyebrow dark-eyebrow">
                 <span /> HOME GROUND
               </p>
-              <h2>{team.homeVenue.name}</h2>
-              <p>{team.homeVenue.city}</p>
+              <h2
+                data-hygraph-entry-id={team.homeVenue.id}
+                data-hygraph-field-api-id="name">
+                {team.homeVenue.name}
+              </h2>
+              <p
+                data-hygraph-entry-id={team.homeVenue.id}
+                data-hygraph-field-api-id="city">
+                {team.homeVenue.city}
+              </p>
             </div>
             {team.homeVenue.capacity != null && (
               <div className="venue-capacity">
-                <strong>
+                <strong
+                  data-hygraph-entry-id={team.homeVenue.id}
+                  data-hygraph-field-api-id="capacity">
                   {team.homeVenue.capacity.toLocaleString("en-GB")}
                 </strong>
                 <span>CAPACITY</span>
@@ -254,7 +332,10 @@ export default async function TeamPage({
                 <article
                   className="squad-player"
                   key={`${player.shirtNumber}-${player.name}`}>
-                  <div className="player-photo">
+                  <div
+                    className="player-photo"
+                    data-hygraph-entry-id={player.id}
+                    data-hygraph-field-api-id="playerPhoto">
                     {player.playerPhoto?.url ? (
                       <img src={player.playerPhoto.url} alt={player.name} />
                     ) : (
@@ -262,9 +343,22 @@ export default async function TeamPage({
                     )}
                   </div>
                   <div className="player-info">
-                    <span className="player-number">#{player.shirtNumber}</span>
-                    <h3>{player.name}</h3>
-                    <p>{positionLabel(player.position)}</p>
+                    <span
+                      className="player-number"
+                      data-hygraph-entry-id={player.id}
+                      data-hygraph-field-api-id="shirtNumber">
+                      #{player.shirtNumber}
+                    </span>
+                    <h3
+                      data-hygraph-entry-id={player.id}
+                      data-hygraph-field-api-id="name">
+                      {player.name}
+                    </h3>
+                    <p
+                      data-hygraph-entry-id={player.id}
+                      data-hygraph-field-api-id="position">
+                      {positionLabel(player.position)}
+                    </p>
                   </div>
                 </article>
               ))}

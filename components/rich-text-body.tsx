@@ -62,13 +62,21 @@ function RichText({
 
 export function RichTextBody({
   content,
+  entryId,
+  fieldApiId,
 }: {
   content: { raw: RichTextNode } | null | undefined;
+  entryId?: string;
+  fieldApiId?: string;
 }) {
   if (!content?.raw) return null;
 
   return (
-    <div className="article-body">
+    <div
+      className="article-body"
+      data-hygraph-entry-id={entryId}
+      data-hygraph-field-api-id={fieldApiId}
+      data-hygraph-rich-text-format="text">
       <RichText node={content.raw} path="content" />
     </div>
   );

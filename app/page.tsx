@@ -1,4 +1,5 @@
 import { Fixture, getHomePageData, NewsArticle, Team } from '@/lib/hygraph';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 
 export const dynamic = "force-dynamic";
@@ -24,49 +25,91 @@ function FixtureCard({ fixture }: { fixture: Fixture }) {
   return (
     <article className="fixture-card">
       <div className="fixture-meta">
-        <span>{fixture.competition?.name ?? "Club fixture"}</span>
+        <span
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="competition">
+          {fixture.competition?.name ?? "Club fixture"}
+        </span>
         <span>
-          {kickoff.date} · {kickoff.time}
+          <time
+            data-hygraph-entry-id={fixture.id}
+            data-hygraph-field-api-id="kickoff">
+            {kickoff.date} · {kickoff.time}
+          </time>
         </span>
       </div>
       <div className="fixture-matchup">
         <div className="fixture-side">
-          {fixture.homeTeam?.teamLogo?.url ? (
-            <img
-              src={fixture.homeTeam.teamLogo.url}
-              alt=""
-              className="fixture-crest"
-            />
-          ) : (
-            <span className="crest-placeholder">
-              {fixture.homeTeam?.name?.charAt(0) ?? "?"}
-            </span>
-          )}
-          <span>{fixture.homeTeam?.name ?? "Home team"}</span>
+          <span
+            data-hygraph-entry-id={fixture.id}
+            data-hygraph-field-api-id="homeTeam">
+            {fixture.homeTeam?.teamLogo?.url ? (
+              <img
+                src={fixture.homeTeam.teamLogo.url}
+                alt=""
+                className="fixture-crest"
+                data-hygraph-entry-id={fixture.homeTeam.id}
+                data-hygraph-field-api-id="teamLogo"
+              />
+            ) : (
+              <span className="crest-placeholder">
+                {fixture.homeTeam?.name?.charAt(0) ?? "?"}
+              </span>
+            )}
+          </span>
+          <span
+            data-hygraph-entry-id={fixture.homeTeam?.id}
+            data-hygraph-field-api-id="name">
+            {fixture.homeTeam?.name ?? "Home team"}
+          </span>
         </div>
         <span className="versus">VS</span>
         <div className="fixture-side fixture-side-away">
-          <span>{fixture.awayTeam?.name ?? "Away team"}</span>
-          {fixture.awayTeam?.teamLogo?.url ? (
-            <img
-              src={fixture.awayTeam.teamLogo.url}
-              alt=""
-              className="fixture-crest"
-            />
-          ) : (
-            <span className="crest-placeholder">
-              {fixture.awayTeam?.name?.charAt(0) ?? "?"}
-            </span>
-          )}
+          <span
+            data-hygraph-entry-id={fixture.awayTeam?.id}
+            data-hygraph-field-api-id="name">
+            {fixture.awayTeam?.name ?? "Away team"}
+          </span>
+          <span
+            data-hygraph-entry-id={fixture.id}
+            data-hygraph-field-api-id="awayTeam">
+            {fixture.awayTeam?.teamLogo?.url ? (
+              <img
+                src={fixture.awayTeam.teamLogo.url}
+                alt=""
+                className="fixture-crest"
+                data-hygraph-entry-id={fixture.awayTeam.id}
+                data-hygraph-field-api-id="teamLogo"
+              />
+            ) : (
+              <span className="crest-placeholder">
+                {fixture.awayTeam?.name?.charAt(0) ?? "?"}
+              </span>
+            )}
+          </span>
         </div>
       </div>
       <div className="fixture-footer">
-        <span>
-          {fixture.venue
-            ? `${fixture.venue.name}, ${fixture.venue.city}`
-            : "Venue to be confirmed"}
+        <span
+          data-hygraph-entry-id={fixture.id}
+          data-hygraph-field-api-id="venue">
+          {fixture.venue ? (
+            <>
+              <span
+                data-hygraph-entry-id={fixture.venue.id}
+                data-hygraph-field-api-id="name">
+                {fixture.venue.name}
+              </span>
+              , {fixture.venue.city}
+            </>
+          ) : (
+            "Venue to be confirmed"
+          )}
         </span>
-        <span className="fixture-season">
+        <span
+          className="fixture-season"
+          data-hygraph-entry-id={fixture.competition?.id}
+          data-hygraph-field-api-id="season">
           {fixture.competition?.season ?? ""}
         </span>
       </div>
@@ -83,7 +126,10 @@ function ArticleCard({
 }) {
   return (
     <article className={`story-card story-card-${index + 1}`}>
-      <div className="story-art">
+      <div
+        className="story-art"
+        data-hygraph-entry-id={article.id}
+        data-hygraph-field-api-id="articleImage">
         {article.articleImage?.url ? (
           <img src={article.articleImage.url} alt="" />
         ) : (
@@ -94,14 +140,21 @@ function ArticleCard({
         <span className="story-tag">Club stories</span>
       </div>
       <div className="story-copy">
-        <time dateTime={article.articleDate}>
+        <time
+          dateTime={article.articleDate}
+          data-hygraph-entry-id={article.id}
+          data-hygraph-field-api-id="articleDate">
           {new Intl.DateTimeFormat("en-GB", {
             day: "numeric",
             month: "long",
             year: "numeric",
           }).format(new Date(article.articleDate))}
         </time>
-        <h3>{article.title}</h3>
+        <h3
+          data-hygraph-entry-id={article.id}
+          data-hygraph-field-api-id="title">
+          {article.title}
+        </h3>
         <Link
           href={`/articles/${encodeURIComponent(article.slug)}`}
           className="text-link">
@@ -121,17 +174,32 @@ function TeamCard({ team, index }: { team: Team; index: number }) {
           src={team.teamLogo.url}
           alt={`${team.name} crest`}
           className="team-crest"
+          data-hygraph-entry-id={team.id}
+          data-hygraph-field-api-id="teamLogo"
         />
       ) : (
         <span className="team-crest team-crest-placeholder">
           {team.name.charAt(0)}
         </span>
       )}
-      <h3>{team.name}</h3>
-      <p>
-        {team.homeVenue?.city ??
-          (team.foundedYear ? `Est. ${team.foundedYear}` : "Club team")}
-      </p>
+      <h3 data-hygraph-entry-id={team.id} data-hygraph-field-api-id="name">
+        {team.name}
+      </h3>
+      {team.homeVenue?.city ? (
+        <p
+          data-hygraph-entry-id={team.homeVenue.id}
+          data-hygraph-field-api-id="city">
+          {team.homeVenue.city}
+        </p>
+      ) : team.foundedYear ? (
+        <p
+          data-hygraph-entry-id={team.id}
+          data-hygraph-field-api-id="foundedYear">
+          Est. {team.foundedYear}
+        </p>
+      ) : (
+        <p>Club team</p>
+      )}
       <Link
         href={`/teams/${encodeURIComponent(team.slug)}`}
         aria-label={`Explore ${team.name}`}
@@ -147,7 +215,8 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 }
 
 export default async function Home() {
-  const { data, configured, available } = await getHomePageData();
+  const { isEnabled } = await draftMode();
+  const { data, configured, available } = await getHomePageData(isEnabled);
 
   return (
     <main>

@@ -1,6 +1,7 @@
 import { RichTextBody } from '@/components/rich-text-body';
 import { SiteFooter, SiteNavigation } from '@/components/site-chrome';
 import { getArticleBySlug } from '@/lib/hygraph';
+import { draftMode } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -29,7 +30,11 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { article, configured, available } = await getArticleBySlug(slug);
+  const { isEnabled } = await draftMode();
+  const { article, configured, available } = await getArticleBySlug(
+    slug,
+    isEnabled,
+  );
 
   if (available && !article) notFound();
 
@@ -72,8 +77,15 @@ export default async function ArticlePage({
           <p className="eyebrow dark-eyebrow">
             <span /> CLUB STORIES
           </p>
-          <h1>{article.title}</h1>
-          <time dateTime={article.articleDate}>
+          <h1
+            data-hygraph-entry-id={article.id}
+            data-hygraph-field-api-id="title">
+            {article.title}
+          </h1>
+          <time
+            data-hygraph-entry-id={article.id}
+            data-hygraph-field-api-id="articleDate"
+            dateTime={article.articleDate}>
             {formatArticleDate(article.articleDate)}
           </time>
         </div>
@@ -82,6 +94,8 @@ export default async function ArticlePage({
             className="article-cover"
             src={article.articleImage.url}
             alt={article.title}
+            data-hygraph-entry-id={article.id}
+            data-hygraph-field-api-id="articleImage"
           />
         ) : (
           <div
@@ -90,7 +104,11 @@ export default async function ArticlePage({
             SW<span>.</span>
           </div>
         )}
-        <RichTextBody content={article.body} />
+        <RichTextBody
+          content={article.body}
+          entryId={article.id}
+          fieldApiId="body"
+        />
         <div className="article-endnote">
           <span>SPORTS WORLD</span>
           <Link href="/#stories" className="text-link">

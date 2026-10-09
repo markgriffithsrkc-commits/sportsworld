@@ -25,6 +25,22 @@ The home page expects the schema from the Sports World checklist: `Fixture` with
 
 Hygraph data access lives in `lib/hygraph.ts`; the home page query requests four upcoming fixtures, three newest articles, and four teams.
 
+## Hygraph draft preview and inline editing
+
+The site supports Hygraph Draft Mode and Click to Edit. Preview requests use the `DRAFT` stage and `HYGRAPH_PREVIEW_TOKEN`; normal visitors explicitly receive `PUBLISHED` content using `HYGRAPH_TOKEN`.
+
+1. Create a **Permanent Auth Token** in Hygraph with its default content stage set to **DRAFT**. Add it locally as `HYGRAPH_PREVIEW_TOKEN`. Keep the published token in `HYGRAPH_TOKEN`.
+2. Generate a long random secret and set `HYGRAPH_PREVIEW_SECRET` in `.env.local`. Never put either token or this secret in a `NEXT_PUBLIC_` variable.
+3. Restart the Next.js server after editing `.env.local`.
+4. In Hygraph Schema, add the **Preview** sidebar widget to each model and use these URL templates (replace the domain and secret):
+   - Fixture: `https://your-domain/api/preview?secret=YOUR_SECRET&slug=/`
+   - News Article: `https://your-domain/api/preview?secret=YOUR_SECRET&slug=/articles/{slug}`
+   - Team: `https://your-domain/api/preview?secret=YOUR_SECRET&slug=/teams/{slug}`
+   - Shop Item: `https://your-domain/api/preview?secret=YOUR_SECRET&slug=/products/{slug}`
+5. Open a saved entry and choose **Open live preview**. Hover fields marked on the site and choose **Edit** to jump back to the Hygraph field. Changes synchronize in preview; use **Exit preview** to return to published mode.
+
+Preview requests are protected by a server-side secret and the redirect path is restricted to known site routes. The SDK only loads in Draft Mode. For Studio iframe previews, allow the site to be embedded in Hygraph in your hosting/security settings. The home hero and navigation are currently hard-coded rather than Hygraph fields; content model fields shown in the pages can be edited from the preview.
+
 ## Deploy
 
 1. Push this folder to a GitHub repository.
